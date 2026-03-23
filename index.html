@@ -4011,7 +4011,10 @@ window.addEventListener('resize', () => {
 const WORKER_URL = 'https://withered-bar-4b79.rugu5566.workers.dev';  // e.g. 'https://voidsignal-proxy.yourname.workers.dev'
 // Helper: routes a path through the worker if configured, otherwise falls back
 function proxyUrl(path) {
-  return WORKER_URL ? WORKER_URL.replace(/\/+$/, '') + path : null;
+  if (!WORKER_URL) return null;
+  // Strip trailing slashes, then add exactly one + path (which starts with /)
+  const base = WORKER_URL.replace(/\/+$/, '');
+  return base + path;
 }
 /* ─── SUPABASE CONFIG ────────────────────────────────────────────────
    Replace these two values with your own from supabase.com
@@ -5611,7 +5614,7 @@ async function aiQuery(prompt) {
   // Choose endpoint: worker /ai (best) → direct Anthropic (fallback)
   const useWorker  = !!WORKER_URL;
   const endpoint   = useWorker
-    ? WORKER_URL.replace(/\/+$/, '') + '/ai'
+    ? (WORKER_URL.replace(/\/+$/, '')) + '/ai'
     : 'https://api.anthropic.com/v1/messages';
   const headers    = useWorker
     ? { 'Content-Type': 'application/json' }
@@ -5635,8 +5638,13 @@ async function aiQuery(prompt) {
 
     const data = await res.json().catch(() => ({}));
 
-    // Rate limit or quota hit
-    if (res.status === 429 || data.rateLimit) {
+    // Rate limit, quota, or billing issue → show $VOID message
+    const isBilling = res.status === 400 && (
+      (data.error?.message || '').toLowerCase().includes('credit') ||
+      (data.error?.message || '').toLowerCase().includes('billing') ||
+      (data.error?.type   || '') === 'billing_error'
+    );
+    if (res.status === 429 || data.rateLimit || isBilling) {
       termBlank();
       termLine('<span style="color:var(--a)">// ⬡ ─────────────────────────────────────────────</span>');
       termLine('<span style="color:var(--a)">// VOID-AI DAILY LIMIT REACHED</span>');
