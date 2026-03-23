@@ -3159,7 +3159,7 @@ window.addEventListener('resize', () => {
    Set this to your Cloudflare Worker URL after deploying.
    See voidsignal-worker.js for deploy instructions (5 min).
    With worker set, ALL live data works — no CORS errors.         */
-const WORKER_URL = 'https://withered-bar-4b79.rugu5566.workers.dev';  // e.g. 'https://voidsignal-proxy.yourname.workers.dev'
+const WORKER_URL = 'https://withered-bar-4b79.rugu5566.workers.dev';  // Cloudflare Worker proxy
 // Helper: routes a path through the worker if configured, otherwise falls back
 function proxyUrl(path) {
   return WORKER_URL ? WORKER_URL + path : null;
@@ -4761,17 +4761,10 @@ async function aiQuery(prompt) {
   }, 400);
 
   try {
-    // Route through Cloudflare Worker — fixes browser CORS block on Anthropic API
-    const aiEndpoint = WORKER_URL
-      ? WORKER_URL.replace(/\/$/, '') + '/ai'
-      : 'https://api.anthropic.com/v1/messages';
-
-    const res = await fetch(aiEndpoint, {
+    const res = await fetch(WORKER_URL + '/ai', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1000,
         system: AI_SYSTEM,
         messages: aiHistory
       })
@@ -4785,8 +4778,9 @@ async function aiQuery(prompt) {
       throw new Error(err.error?.message || `HTTP ${res.status}`);
     }
 
-    const data   = await res.json();
-    const reply  = data.content?.[0]?.text || 'Signal lost. Try again.';
+    const data  = await res.json();
+    // Worker normalises Gemini response → {reply: "text"}
+    const reply = data.reply || data.content?.[0]?.text || 'Signal lost. Try again.';
     aiHistory.push({ role: 'assistant', content: reply });
 
     termBlank();
@@ -4804,7 +4798,7 @@ async function aiQuery(prompt) {
     clearInterval(dotTimer);
     document.getElementById('ai-thinking')?.remove();
     termLine(`<span style="color:var(--r)">// UPLINK ERROR: ${e.message}</span>`);
-    termLine('<span style="color:var(--dim)">// Check API key is set in Anthropic dashboard. Retry in a moment.</span>');
+    termLine('<span style="color:var(--dim)">// Check GEMINI_KEY is set in Worker environment variables.</span>');
     status.textContent = '⬡ ERROR'; status.style.color = 'var(--r)';
   }
 
