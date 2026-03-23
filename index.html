@@ -4011,7 +4011,7 @@ window.addEventListener('resize', () => {
 const WORKER_URL = 'https://withered-bar-4b79.rugu5566.workers.dev/';  // e.g. 'https://voidsignal-proxy.yourname.workers.dev'
 // Helper: routes a path through the worker if configured, otherwise falls back
 function proxyUrl(path) {
-  return WORKER_URL ? WORKER_URL + path : null;
+  return WORKER_URL ? WORKER_URL.replace(/\/+$/, '') + path : null;
 }
 /* ─── SUPABASE CONFIG ────────────────────────────────────────────────
    Replace these two values with your own from supabase.com
@@ -5611,7 +5611,7 @@ async function aiQuery(prompt) {
   // Choose endpoint: worker /ai (best) → direct Anthropic (fallback)
   const useWorker  = !!WORKER_URL;
   const endpoint   = useWorker
-    ? WORKER_URL + '/ai'
+    ? WORKER_URL.replace(/\/+$/, '') + '/ai'
     : 'https://api.anthropic.com/v1/messages';
   const headers    = useWorker
     ? { 'Content-Type': 'application/json' }
@@ -5857,7 +5857,7 @@ buildSatGrids();
   const el = document.getElementById('worker-status');
   if (!el) return;
   if (WORKER_URL) {
-    fetch(WORKER_URL + '/health', {signal: AbortSignal.timeout(3000)})
+    fetch(WORKER_URL.replace(/\/+$/, '') + '/health', {signal: AbortSignal.timeout(3000)})
       .then(r => r.json())
       .then(d => { el.textContent = '⬡ CLAUDE AI + LIVE DATA · WORKER ONLINE'; el.style.color = 'var(--g)'; el.style.opacity = '0.6'; })
       .catch(()=> { el.textContent = '⬡ WORKER UNREACHABLE · USING FALLBACK APIS'; el.style.color = 'var(--a)'; el.style.opacity = '0.5'; });
