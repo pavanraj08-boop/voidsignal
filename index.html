@@ -3159,7 +3159,7 @@ window.addEventListener('resize', () => {
    Set this to your Cloudflare Worker URL after deploying.
    See voidsignal-worker.js for deploy instructions (5 min).
    With worker set, ALL live data works — no CORS errors.         */
-const WORKER_URL = '';  // e.g. 'https://withered-bar-4b79.rugu5566.workers.dev/'
+const WORKER_URL = '';  // e.g. 'https://voidsignal-proxy.yourname.workers.dev'
 // Helper: routes a path through the worker if configured, otherwise falls back
 function proxyUrl(path) {
   return WORKER_URL ? WORKER_URL + path : null;
@@ -4761,7 +4761,12 @@ async function aiQuery(prompt) {
   }, 400);
 
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
+    // Route through Cloudflare Worker — fixes browser CORS block on Anthropic API
+    const aiEndpoint = WORKER_URL
+      ? WORKER_URL.replace(/\/$/, '') + '/ai'
+      : 'https://api.anthropic.com/v1/messages';
+
+    const res = await fetch(aiEndpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
