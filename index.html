@@ -5638,13 +5638,12 @@ async function aiQuery(prompt) {
 
     const data = await res.json().catch(() => ({}));
 
-    // Rate limit, quota, or billing issue → show $VOID message
-    const isBilling = res.status === 400 && (
-      (data.error?.message || '').toLowerCase().includes('credit') ||
-      (data.error?.message || '').toLowerCase().includes('billing') ||
-      (data.error?.type   || '') === 'billing_error'
-    );
-    if (res.status === 429 || data.rateLimit || isBilling) {
+    // Rate limit, quota, billing → show $VOID message
+    // Worker returns {error:"string", code:"type"} — check the string directly
+    const errMsg = (data.error || data.error?.message || '').toString().toLowerCase();
+    const isBilling = errMsg.includes('credit') || errMsg.includes('billing') || errMsg.includes('balance');
+    const isLimit   = res.status === 429 || data.rateLimit || res.status === 402;
+    if (isLimit || isBilling) {
       termBlank();
       termLine('<span style="color:var(--a)">// ⬡ ─────────────────────────────────────────────</span>');
       termLine('<span style="color:var(--a)">// VOID-AI DAILY LIMIT REACHED</span>');
