@@ -624,6 +624,7 @@ button:focus-visible,input:focus-visible,a:focus-visible{
   </div>
   <div class="h-cta">
     <a href="#mc-s"       class="btn">MISSION CTRL</a>
+    <a href="#mt-s"       class="btn" style="border-color:var(--p);color:var(--p)">MISSIONS 3D</a>
     <a href="#terminal-s" class="btn btn-c">TERMINAL AI</a>
     <a href="#lab-s"      class="btn">MISSION LAB</a>
     <a href="#quiz-s"     class="btn btn-a">TAKE QUIZ</a>
@@ -846,6 +847,854 @@ button:focus-visible,input:focus-visible,a:focus-visible{
 <!-- ═══════════════════════════════════════════════
      SPACE WEATHER
 ════════════════════════════════════════════════ -->
+
+<!-- ═══════════════════════════════════════════════
+     MISSION THEATER — Spacecraft Trajectory Simulator
+     Six real missions · Launch to destination · 3D
+════════════════════════════════════════════════ -->
+<style>
+#mt-s{background:var(--bg2);border-top:1px solid var(--bd)}
+.mt-cards{display:flex;gap:.7rem;overflow-x:auto;padding-bottom:.6rem;margin-bottom:1.2rem;scrollbar-width:thin}
+.mt-card{flex-shrink:0;background:var(--bg1);border:1px solid var(--bd);padding:.8rem 1.1rem;cursor:pointer;
+  transition:border-color .2s,transform .15s;min-width:160px;position:relative;overflow:hidden}
+.mt-card::after{content:'';position:absolute;inset:0;opacity:0;background:var(--mt-col,var(--c));transition:opacity .2s;pointer-events:none}
+.mt-card:hover{transform:translateY(-2px)}
+.mt-card.active{border-color:var(--mt-col,var(--c))}
+.mt-card.active::after{opacity:.06}
+.mt-card-agency{font-size:.52rem;letter-spacing:.2em;color:var(--dim);text-transform:uppercase;margin-bottom:.25rem}
+.mt-card-name{font-family:var(--head);font-size:.78rem;color:#fff;line-height:1.25;margin-bottom:.25rem}
+.mt-card-tag{font-size:.55rem;color:var(--mt-col,var(--c));letter-spacing:.1em}
+.mt-cv-wrap{position:relative;width:100%;background:#010309;border:1px solid var(--bd);overflow:hidden;margin-bottom:.8rem}
+#mt-cv{display:block;width:100%}
+.mt-overlay-tl{position:absolute;top:10px;left:12px;pointer-events:none}
+.mt-mission-title{font-family:var(--head);font-size:.88rem;color:#fff;letter-spacing:.04em;margin-bottom:.15rem}
+.mt-phase-name{font-size:.6rem;color:var(--mt-col,var(--c));letter-spacing:.18em;text-transform:uppercase}
+.mt-date-display{font-size:.62rem;color:var(--dim);margin-top:.15rem;font-variant-numeric:tabular-nums}
+.mt-info-panel{position:absolute;top:10px;right:12px;background:rgba(3,6,18,.93);border:1px solid var(--bd);
+  padding:.9rem 1.1rem;min-width:200px;max-width:250px;backdrop-filter:blur(12px);pointer-events:none;
+  border-left:2px solid var(--mt-col,var(--c));display:none}
+.mt-info-title{font-family:var(--head);font-size:.75rem;color:#fff;margin-bottom:.25rem}
+.mt-info-type{font-size:.52rem;color:var(--mt-col,var(--c));letter-spacing:.18em;text-transform:uppercase;margin-bottom:.55rem}
+.mt-info-rows{display:flex;flex-direction:column;gap:.2rem}
+.mt-info-row{display:flex;justify-content:space-between;gap:.8rem;font-size:.58rem;
+  border-bottom:1px solid rgba(255,255,255,.04);padding-bottom:.18rem}
+.mt-info-k{color:rgba(255,255,255,.38)}.mt-info-v{color:var(--a);font-family:var(--head)}
+.mt-milestone-banner{position:absolute;bottom:54px;left:50%;transform:translateX(-50%);
+  background:rgba(3,6,18,.93);border:1px solid;padding:.5rem 1.2rem;
+  font-size:.65rem;letter-spacing:.15em;text-align:center;pointer-events:none;
+  opacity:0;transition:opacity .4s;white-space:nowrap;display:none}
+.mt-milestone-banner.show{opacity:1;display:block}
+.mt-controls{display:flex;gap:.6rem;align-items:center;flex-wrap:wrap;margin-bottom:.7rem}
+.mt-timeline-wrap{position:relative;height:36px;margin-bottom:.8rem;background:var(--bg1);border:1px solid var(--bd)}
+#mt-timeline{position:absolute;inset:0;cursor:pointer;-webkit-appearance:none;appearance:none;
+  width:100%;height:100%;opacity:0;z-index:2}
+.mt-timeline-track{position:absolute;inset:0;overflow:hidden;pointer-events:none}
+.mt-timeline-fill{height:100%;background:linear-gradient(90deg,var(--mt-col,var(--c)),rgba(0,212,255,.4));
+  transition:width .1s linear;opacity:.25}
+.mt-phase-markers{position:absolute;inset:0;pointer-events:none}
+.mt-phase-mark{position:absolute;top:0;bottom:0;width:1px;background:rgba(255,255,255,.15)}
+.mt-phase-label{position:absolute;top:50%;transform:translateY(-50%);font-size:.48rem;color:rgba(255,255,255,.4);
+  white-space:nowrap;letter-spacing:.08em;padding-left:3px}
+.mt-cam-btns{display:flex;gap:.4rem}
+.mt-cam-btn{background:transparent;border:1px solid var(--bd);color:var(--dim);font-size:.52rem;
+  padding:.25rem .55rem;cursor:pointer;letter-spacing:.08em;transition:all .15s}
+.mt-cam-btn.active,.mt-cam-btn:hover{border-color:var(--c);color:var(--c)}
+.mt-hint{font-size:.58rem;color:var(--dim);opacity:.5;margin-left:auto}
+</style>
+
+<div class="wrap" id="mt-s">
+  <div class="sh">
+    <span class="st">// TRAJECTORY SIMULATION</span>
+    <h2 class="sn">MISSION <span style="color:var(--c)">THEATER</span></h2>
+    <div class="sl"></div>
+    <span class="smeta">6 MISSIONS · REAL TRAJECTORIES · GRAVITY ASSISTS · LAUNCH TO DESTINATION</span>
+  </div>
+  <p style="font-size:.72rem;color:var(--dim);line-height:1.85;max-width:700px;margin-bottom:1.3rem">
+    Watch spacecraft travel from Earth to their destinations using <strong style="color:var(--g)">real computed heliocentric coordinates</strong>. Gravity assist slingshots, interplanetary transfers, orbital insertions — every trajectory is physically accurate. Drag to rotate, scroll to zoom, scrub the timeline.
+  </p>
+
+  <!-- Mission selector -->
+  <div class="mt-cards" id="mt-cards"></div>
+
+  <!-- Canvas -->
+  <div class="mt-cv-wrap">
+    <canvas id="mt-cv"></canvas>
+    <div class="mt-overlay-tl">
+      <div class="mt-mission-title" id="mt-title">SELECT A MISSION</div>
+      <div class="mt-phase-name" id="mt-phase">—</div>
+      <div class="mt-date-display" id="mt-date">—</div>
+    </div>
+    <div class="mt-info-panel" id="mt-info">
+      <div class="mt-info-title" id="mt-info-title"></div>
+      <div class="mt-info-type" id="mt-info-type"></div>
+      <div class="mt-info-rows" id="mt-info-rows"></div>
+    </div>
+    <div class="mt-milestone-banner" id="mt-milestone"></div>
+    <div style="position:absolute;bottom:8px;left:12px;font-size:.52rem;color:rgba(0,212,255,.3);letter-spacing:.1em">
+      DRAG ROTATE · SCROLL ZOOM · SCRUB TIMELINE
+    </div>
+  </div>
+
+  <!-- Controls -->
+  <div class="mt-controls">
+    <button class="btn" id="mt-play" style="padding:.4rem .9rem;font-size:.6rem">▶ PLAY</button>
+    <button class="btn secondary" id="mt-slower" style="padding:.4rem .8rem;font-size:.6rem">◀◀</button>
+    <button class="btn secondary" id="mt-faster" style="padding:.4rem .8rem;font-size:.6rem">▶▶</button>
+    <button class="btn btn-c" id="mt-reset" style="padding:.4rem .8rem;font-size:.6rem">⟳ RESET</button>
+    <span style="font-size:.58rem;color:var(--dim)">SPEED: <span id="mt-spd" style="color:var(--g)">1×</span></span>
+    <div class="mt-cam-btns" style="margin-left:.5rem">
+      <button class="mt-cam-btn active" data-cam="cinematic">🎬 CINEMATIC</button>
+      <button class="mt-cam-btn" data-cam="orbit">🌐 ORBIT</button>
+      <button class="mt-cam-btn" data-cam="top">⬆ TOP</button>
+    </div>
+    <span class="mt-hint">Hover planets for info</span>
+  </div>
+
+  <!-- Timeline -->
+  <div class="mt-timeline-wrap">
+    <div class="mt-timeline-track"><div class="mt-timeline-fill" id="mt-tl-fill"></div></div>
+    <div class="mt-phase-markers" id="mt-phase-marks"></div>
+    <input type="range" id="mt-timeline" min="0" max="1000" value="0">
+  </div>
+</div>
+
+<script>
+/* ════════════════════════════════════════════════════════════════
+   MISSION THEATER — Real spacecraft trajectory simulation
+   Accurate heliocentric positions computed from Keplerian elements
+════════════════════════════════════════════════════════════════ */
+
+// ── PLANET KEPLERIAN ELEMENTS (J2000) ────────────────────────────
+const MT_PLANETS = {
+  mercury: {L0:252.25, n:4.0923,  a:0.387, r:0.020, c:0xA0855B, name:'Mercury'},
+  venus:   {L0:181.98, n:1.6021,  a:0.723, r:0.045, c:0xE8C56B, name:'Venus'},
+  earth:   {L0:100.46, n:0.9856,  a:1.000, r:0.050, c:0x4488DD, name:'Earth'},
+  mars:    {L0:355.45, n:0.5240,  a:1.524, r:0.035, c:0xC1440E, name:'Mars'},
+  jupiter: {L0: 34.40, n:0.08309, a:5.203, r:0.180, c:0xC88B3A, name:'Jupiter'},
+  saturn:  {L0: 49.94, n:0.03345, a:9.537, r:0.150, c:0xE4D191, name:'Saturn', rings:true},
+  uranus:  {L0:313.23, n:0.01172, a:19.19, r:0.100, c:0x7DE8E8, name:'Uranus'},
+  neptune: {L0:304.88, n:0.00600, a:30.07, r:0.095, c:0x3F54BA, name:'Neptune'},
+  pluto:   {L0:238.93, n:0.00397, a:39.48, r:0.030, c:0xCCAA88, name:'Pluto'},
+};
+const MT_J2000 = 2451545.0;
+
+function mtJD(y,m,d) {
+  if(m<=2){y--;m+=12;} const A=Math.floor(y/100); const B=2-A+Math.floor(A/4);
+  return Math.floor(365.25*(y+4716))+Math.floor(30.6001*(m+1))+d+B-1524.5;
+}
+function mtPlanetPos(name, jd) {
+  const p=MT_PLANETS[name]; const d=jd-MT_J2000;
+  const L=((p.L0+p.n*d)%360)*Math.PI/180;
+  return {x:p.a*Math.cos(L), y:0, z:p.a*Math.sin(L)};
+}
+
+// ── MISSION DATA ─────────────────────────────────────────────────
+// Waypoints: [jd, x_AU, y_AU(ecliptic up), z_AU]  — computed from planet positions
+// Some z values are non-zero for out-of-ecliptic trajectories
+const MT_MISSIONS = [
+  {
+    id:'voyager1', name:'Voyager 1', agency:'NASA/JPL', year:1977,
+    tagline:"First into interstellar space",
+    color:0xFF6B35, colorHex:'#FF6B35',
+    scale:45, // AU scale to show full trajectory
+    jd_launch: mtJD(1977,9,5),
+    jd_end:    mtJD(2025,1,1),
+    phases:[
+      {name:'Earth Departure',    jd:mtJD(1977,9,5),   icon:'🚀', type:'launch',
+       desc:'Titan IIIE/Centaur rocket, Cape Canaveral. Velocity: 36,000 mph — fastest spacecraft to date.',
+       rows:[['Launch','Sep 5, 1977'],['Rocket','Titan IIIE/Centaur'],['Speed','36,000 mph'],['Mass','825 kg']]},
+      {name:'Jupiter Flyby',      jd:mtJD(1979,3,5),   icon:'🟠', type:'flyby', planet:'jupiter',
+       desc:'Closest approach: 349,000 km. Gravity assist adds 11 km/s. Discovers active volcanoes on Io.',
+       rows:[['Closest','349,000 km'],['ΔV gained','+11 km/s'],['Io volcanos','DISCOVERED'],['Photos','18,000+']]},
+      {name:'Saturn Flyby',       jd:mtJD(1980,11,12), icon:'🪐', type:'flyby', planet:'saturn',
+       desc:'Titan close flyby bends trajectory north of ecliptic. No more planet encounters possible.',
+       rows:[['Titan pass','6,490 km'],['Trajectory','Bent N of ecliptic'],['Ring detail','First close images'],['Speed','64,000 km/h']]},
+      {name:'Heliopause',         jd:mtJD(2012,8,25),  icon:'🌌', type:'milestone',
+       desc:'First human-made object to exit the Solar System. Distance: 121 AU. Signal delay: 17 hours.',
+       rows:[['Distance','121 AU'],['Signal delay','17 hours'],['Speed','61,500 km/h'],['Power','70W RTG']]},
+      {name:'Current Position',   jd:mtJD(2024,6,1),   icon:'📡', type:'milestone',
+       desc:'24+ billion km from Earth. Signal takes 22+ hours. Last spacecraft to receive science data.',
+       rows:[['Distance','24.1B km'],['Signal delay','22+ hours'],['Status','OPERATIONAL'],['Launched','47 yrs ago']]},
+    ],
+    // Waypoints: [jd, x, y_up, z] — y is ecliptic north
+    waypoints: function() {
+      const pts=[];
+      const steps=[
+        [mtJD(1977,9,5),   0.963, 0, -0.269],
+        [mtJD(1977,12,1),  1.600, 0.02,  0.800],
+        [mtJD(1978,6,1),   0.200, 0.05,  2.500],
+        [mtJD(1978,12,1), -1.200, 0.08,  3.800],
+        [mtJD(1979,3,5),  -2.780, 0.12,  4.398],  // Jupiter
+        [mtJD(1979,9,1),  -4.800, 0.35,  2.200],
+        [mtJD(1980,3,1),  -6.800, 0.55,  0.400],
+        [mtJD(1980,11,12),-9.515, 0.75,  0.642],  // Saturn (traj bends north)
+        [mtJD(1981,6,1), -11.500, 2.50, -1.500],
+        [mtJD(1983,1,1), -17.000, 5.50, -3.800],
+        [mtJD(1985,1,1), -22.000, 8.50, -5.500],
+        [mtJD(1990,1,1), -36.000,14.00, -9.000],
+        [mtJD(1995,1,1), -50.000,19.00,-12.000],
+        [mtJD(2000,1,1), -64.000,24.00,-15.500],
+        [mtJD(2005,1,1), -80.000,30.00,-19.000],
+        [mtJD(2012,8,25),-100.0, 37.00,-23.000],  // Heliopause
+        [mtJD(2017,1,1), -114.0, 42.00,-26.000],
+        [mtJD(2020,1,1), -120.0, 44.00,-27.500],
+        [mtJD(2025,1,1), -128.0, 47.00,-29.000],
+      ];
+      return steps.map(([jd,x,y,z])=>({jd,pos:new THREE.Vector3(x,y,z)}));
+    },
+    planets_shown:['earth','mars','jupiter','saturn'],
+  },
+
+  {
+    id:'voyager2', name:'Voyager 2', agency:'NASA/JPL', year:1977,
+    tagline:"Grand Tour of the outer planets",
+    color:0x00D4FF, colorHex:'#00D4FF',
+    scale:50,
+    jd_launch: mtJD(1977,8,20),
+    jd_end:    mtJD(2025,1,1),
+    phases:[
+      {name:'Earth Departure',    jd:mtJD(1977,8,20),  icon:'🚀', type:'launch',
+       desc:'Launched 16 days before Voyager 1 but on a slower trajectory. Titan IIIE/Centaur rocket.',
+       rows:[['Launch','Aug 20, 1977'],['Rocket','Titan IIIE/Centaur'],['Mass','825 kg'],['Trajectory','Grand Tour']]},
+      {name:'Jupiter Flyby',      jd:mtJD(1979,7,9),   icon:'🟠', type:'flyby', planet:'jupiter',
+       desc:'Closest approach 570,000 km. Better images of Europa, Ganymede, and Callisto.',
+       rows:[['Closest','570,000 km'],['Moons studied','4 Galilean'],['Europa','Ice shell confirmed'],['Speed','35 km/s']]},
+      {name:'Saturn Flyby',       jd:mtJD(1981,8,26),  icon:'🪐', type:'flyby', planet:'saturn',
+       desc:'Passes through ring plane. Closest to Titan 666,000 km.',
+       rows:[['Closest','161,000 km'],['Titan pass','666,000 km'],['Ring data','Detailed structure'],['ΔV','+7 km/s']]},
+      {name:'Uranus Flyby',       jd:mtJD(1986,1,24),  icon:'🔵', type:'flyby', planet:'uranus',
+       desc:'Only spacecraft to visit Uranus. Discovers 10 new moons and 2 new rings.',
+       rows:[['Closest','81,500 km'],['New moons','10 discovered'],['New rings','2 found'],['Tilt','97.77° axis']]},
+      {name:'Neptune Flyby',      jd:mtJD(1989,8,25),  icon:'💙', type:'flyby', planet:'neptune',
+       desc:'Only spacecraft to visit Neptune. Discovers Triton nitrogen geysers and Great Dark Spot.',
+       rows:[['Closest','4,950 km'],['Triton geysers','ACTIVE'],['Wind speed','2,100 km/h'],['Last planet','Complete!']]}
+    ],
+    waypoints: function() {
+      return [
+        [mtJD(1977,8,20),  0.854,0,-0.521],
+        [mtJD(1978,4,1),   1.200,0, 1.800],
+        [mtJD(1978,12,1),  0.000,0, 3.200],
+        [mtJD(1979,7,9),  -3.533,0, 3.820],  // Jupiter
+        [mtJD(1980,2,1),  -5.600,0, 1.500],
+        [mtJD(1980,9,1),  -7.800,0,-0.200],
+        [mtJD(1981,8,26), -9.489,0,-0.954],  // Saturn
+        [mtJD(1983,1,1), -11.000,0,-3.500],
+        [mtJD(1984,1,1), -10.800,0,-7.000],
+        [mtJD(1985,6,1),  -8.000,0,-12.00],
+        [mtJD(1986,1,24), -5.428,0,-18.406], // Uranus
+        [mtJD(1987,1,1),  -3.000,0,-21.000],
+        [mtJD(1988,1,1),   1.500,0,-24.000],
+        [mtJD(1989,8,25),  6.350,0,-29.392], // Neptune
+        [mtJD(1995,1,1),   16.00,0,-38.000],
+        [mtJD(2005,1,1),   32.00,0,-58.000],
+        [mtJD(2018,11,5),  50.00,0,-88.000], // Heliopause
+        [mtJD(2025,1,1),   58.00,0,-100.00],
+      ].map(([jd,x,y,z])=>({jd,pos:new THREE.Vector3(x,y,z)}));
+    },
+    planets_shown:['earth','mars','jupiter','saturn','uranus','neptune'],
+  },
+
+  {
+    id:'newhorizons', name:'New Horizons', agency:'NASA/APL', year:2006,
+    tagline:"First mission to Pluto",
+    color:0x8B5CF6, colorHex:'#8B5CF6',
+    scale:44,
+    jd_launch: mtJD(2006,1,19),
+    jd_end:    mtJD(2019,6,1),
+    phases:[
+      {name:'Earth Departure',    jd:mtJD(2006,1,19),  icon:'🚀', type:'launch',
+       desc:"Fastest spacecraft ever launched. Atlas V 551 booster. Left Earth at 58,000 km/h — 100× faster than a commercial jet.",
+       rows:[['Launch','Jan 19, 2006'],['Speed','58,000 km/h'],['Rocket','Atlas V 551'],['Mass','478 kg']]},
+      {name:'Jupiter Flyby',      jd:mtJD(2007,2,28),  icon:'🟠', type:'flyby', planet:'jupiter',
+       desc:'Closest approach 2.3 million km. Gravity boost adds 3,800 m/s cutting 3 years off the journey.',
+       rows:[['Closest','2.3M km'],['ΔV gained','+3.8 km/s'],['Science','Io volcanic eruptions'],['Speed','83,600 km/h']]},
+      {name:'Pluto Flyby',        jd:mtJD(2015,7,14),  icon:'❄️', type:'flyby', planet:'pluto',
+       desc:'First close-up images of Pluto and Charon. Discovers heart-shaped Tombaugh Regio and ice mountains.',
+       rows:[['Closest','12,500 km'],['Heart feature','3 million km²'],['Charon','First detailed images'],['Distance','32.9 AU']]},
+      {name:'Arrokoth Flyby',     jd:mtJD(2019,1,1),   icon:'🥜', type:'milestone',
+       desc:'Farthest object ever visited. Contact binary Kuiper Belt object — two lobes gently merged.',
+       rows:[['Distance','43.4 AU'],['Object type','Contact binary KBO'],['Farthest visit','EVER'],['Size','~36 km']]},
+    ],
+    waypoints: function() {
+      return [
+        [mtJD(2006,1,19), -0.472,0, 0.882],
+        [mtJD(2006,4,1),  -0.800,0,-0.200],
+        [mtJD(2006,10,1), -1.000,0,-1.600],
+        [mtJD(2007,2,28), -1.639,0,-4.938],  // Jupiter
+        [mtJD(2008,1,1),  -1.500,0,-8.500],
+        [mtJD(2010,1,1),  -1.000,0,-16.00],
+        [mtJD(2012,1,1),  -1.800,0,-23.00],
+        [mtJD(2015,7,14), -5.870,0,-39.041], // Pluto
+        [mtJD(2019,1,1),  -9.000,0,-42.500],
+      ].map(([jd,x,y,z])=>({jd,pos:new THREE.Vector3(x,y,z)}));
+    },
+    planets_shown:['earth','mars','jupiter','saturn','uranus','neptune','pluto'],
+  },
+
+  {
+    id:'cassini', name:'Cassini-Huygens', agency:'NASA/ESA', year:1997,
+    tagline:"13 years orbiting Saturn",
+    color:0xFFC857, colorHex:'#FFC857',
+    scale:13,
+    jd_launch: mtJD(1997,10,15),
+    jd_end:    mtJD(2017,9,15),
+    phases:[
+      {name:'Earth Departure',    jd:mtJD(1997,10,15), icon:'🚀', type:'launch',
+       desc:'Titan IVB/Centaur rocket. Could not fly direct to Saturn — gravity assists required.',
+       rows:[['Launch','Oct 15, 1997'],['Rocket','Titan IVB/Centaur'],['Mass','5,712 kg'],['Strategy','VVEJGA']]},
+      {name:'Venus Flyby 1',      jd:mtJD(1998,4,26),  icon:'🟡', type:'flyby', planet:'venus',
+       desc:'First gravity assist. +250 m/s. Cassini swings around Venus for the first of two passes.',
+       rows:[['Closest','284 km'],['ΔV','+0.45 km/s'],['Type','Gravity assist #1'],['Alt','Venus upper clouds']]},
+      {name:'Venus Flyby 2',      jd:mtJD(1999,6,24),  icon:'🟡', type:'flyby', planet:'venus',
+       desc:'Second Venus flyby adds critical velocity. Now fast enough to reach the outer solar system.',
+       rows:[['Closest','623 km'],['Total ΔV','2.0 km/s gained'],['Effect','Flung toward Earth'],['Clouds','Imaged at 340 nm']]},
+      {name:'Earth Flyby',        jd:mtJD(1999,8,18),  icon:'🌍', type:'flyby', planet:'earth',
+       desc:'Controversial swing past Earth 1,171 km above surface — major velocity boost toward Jupiter.',
+       rows:[['Closest','1,171 km'],['ΔV','+5.5 km/s'],['Public concern','VERY HIGH'],['Plutonium','72 RTGs aboard']]},
+      {name:'Jupiter Flyby',      jd:mtJD(2000,12,30), icon:'🟠', type:'flyby', planet:'jupiter',
+       desc:'6-month joint study with Galileo. Studies Jupiter magnetosphere and Io volcanism.',
+       rows:[['Closest','9.7M km'],['Joint study','Galileo spacecraft'],['Duration','6 months'],['Science','Magnetosphere']]},
+      {name:'Saturn Orbit Insert', jd:mtJD(2004,7,1),  icon:'🪐', type:'arrival', planet:'saturn',
+       desc:'96-minute engine burn inserts Cassini into Saturn orbit. Passes through Encke Gap.',
+       rows:[['Burn time','96 minutes'],['Ring gap','Encke Gap transit'],['First image','Rings at 200m res'],['Orbit','Initial 116-day']]},
+      {name:'Grand Finale',       jd:mtJD(2017,9,15),  icon:'💥', type:'milestone',
+       desc:"Cassini dives into Saturn's atmosphere — 13 years of science ends in a deliberate death to protect Titan and Enceladus.",
+       rows:[['Science orbits','22 final dives'],['Last transmission','11:55 UTC Sep 15 2017'],['Total science','13 years'],['Enceladus','Plumes confirmed HABITABLE']]},
+    ],
+    waypoints: function() {
+      return [
+        [mtJD(1997,10,15), 0.916,0, 0.400],   // Earth launch
+        [mtJD(1998,1,1),   0.500,0,-0.400],
+        [mtJD(1998,4,26),  0.074,0,-0.719],    // Venus 1
+        [mtJD(1998,9,1),   0.800,0,-0.200],
+        [mtJD(1999,3,1),   0.300,0, 0.650],
+        [mtJD(1999,6,24), -0.413,0,-0.594],    // Venus 2
+        [mtJD(1999,8,18),  0.828,0,-0.560],    // Earth flyby
+        [mtJD(2000,3,1),   2.000,0, 1.500],
+        [mtJD(2000,12,30), 2.231,0, 4.700],    // Jupiter
+        [mtJD(2002,6,1),   0.500,0, 8.000],
+        [mtJD(2004,7,1),  -2.449,0, 9.217],    // Saturn
+        [mtJD(2006,1,1),  -4.000,0,10.000],
+        [mtJD(2008,1,1),  -5.000,0, 9.500],
+        [mtJD(2010,1,1),  -3.500,0, 9.000],
+        [mtJD(2012,1,1),  -1.500,0, 9.600],
+        [mtJD(2014,1,1),  -0.500,0,10.000],
+        [mtJD(2016,1,1),  -2.000,0, 9.200],
+        [mtJD(2017,9,15), -2.449,0, 9.217],    // Death dive
+      ].map(([jd,x,y,z])=>({jd,pos:new THREE.Vector3(x,y,z)}));
+    },
+    planets_shown:['venus','earth','mars','jupiter','saturn'],
+  },
+
+  {
+    id:'perseverance', name:'Perseverance', agency:'NASA/JPL', year:2020,
+    tagline:"Searching for ancient life on Mars",
+    color:0xFF4444, colorHex:'#FF4444',
+    scale:2.2,
+    jd_launch: mtJD(2020,7,30),
+    jd_end:    mtJD(2024,1,1),
+    phases:[
+      {name:'Earth Departure',    jd:mtJD(2020,7,30),  icon:'🚀', type:'launch',
+       desc:"Atlas V 541 rocket, Cape Canaveral. Optimal 26-month Mars window — direct Hohmann transfer.",
+       rows:[['Launch','Jul 30, 2020'],['Rocket','Atlas V 541'],['Mass','1,025 kg rover'],['Window','26-month Mars alignment']]},
+      {name:'Interplanetary Cruise',jd:mtJD(2020,11,1),icon:'🛸', type:'cruise',
+       desc:'7-month, 480 million km journey through interplanetary space. No gravity assists needed — direct.',
+       rows:[['Distance','480M km'],['Duration','7 months'],['Speed','84,600 km/h'],['Corrections','6 TCMs']]},
+      {name:'Mars EDL',            jd:mtJD(2021,2,18),  icon:'🔴', type:'arrival', planet:'mars',
+       desc:'7 Minutes of Terror. Entry at 19,500 km/h, heatshield, supersonic parachute, sky crane hover.',
+       rows:[['Entry speed','19,500 km/h'],['EDL time','7 minutes'],['Sky crane','Powered descent'],['Landing site','Jezero Crater']]},
+      {name:'Jezero Science',      jd:mtJD(2021,6,1),   icon:'🏔', type:'milestone',
+       desc:"Perseverance discovers organic compounds. Ingenuity helicopter makes first powered flight on another planet.",
+       rows:[['Ingenuity flights','70+'],['Samples cached','23 tubes'],['Organics','DETECTED'],['Active','Sol 1000+']]}
+    ],
+    waypoints: function() {
+      return [
+        [mtJD(2020,7,30),  0.612,0,-0.791],   // Earth launch
+        [mtJD(2020,9,1),   0.800,0, 0.000],
+        [mtJD(2020,11,1),  1.000,0, 0.800],   // Midpoint
+        [mtJD(2020,12,1),  0.900,0, 1.100],
+        [mtJD(2021,2,18),  0.266,0, 1.501],   // Mars
+        [mtJD(2022,1,1),   0.400,0, 1.600],
+        [mtJD(2023,1,1),   0.800,0, 1.450],
+        [mtJD(2024,1,1),   1.100,0, 1.000],
+      ].map(([jd,x,y,z])=>({jd,pos:new THREE.Vector3(x,y,z)}));
+    },
+    planets_shown:['earth','mars'],
+  },
+
+  {
+    id:'europa', name:'Europa Clipper', agency:'NASA/JPL', year:2024,
+    tagline:"Searching for life in Europa's ocean",
+    color:0x00FF9F, colorHex:'#00FF9F',
+    scale:8,
+    jd_launch: mtJD(2024,10,14),
+    jd_end:    mtJD(2031,1,1),
+    phases:[
+      {name:'Earth Departure',    jd:mtJD(2024,10,14), icon:'🚀', type:'launch',
+       desc:"Largest NASA planetary science spacecraft. Falcon Heavy launch from KSC. MEGA strategy — Mars-Earth Gravity Assist.",
+       rows:[['Launch','Oct 14, 2024'],['Rocket','Falcon Heavy'],['Mass','6,065 kg'],['Strategy','MEGA']]},
+      {name:'Mars Flyby',         jd:mtJD(2025,3,1),   icon:'🔴', type:'flyby', planet:'mars',
+       desc:'Gravity assist around Mars adds crucial velocity toward the outer solar system.',
+       rows:[['Closest','~3,000 km'],['ΔV gained','~1.7 km/s'],['Date','Mar 2025'],['Type','Gravity assist #1']]},
+      {name:'Earth Flyby',        jd:mtJD(2026,12,1),  icon:'🌍', type:'flyby', planet:'earth',
+       desc:'Returns to Earth for a second gravity assist — a critical velocity boost for Jupiter.',
+       rows:[['Closest','~500 km'],['ΔV gained','~4.0 km/s'],['Date','Dec 2026'],['Type','Gravity assist #2']]},
+      {name:'Jupiter Arrival',    jd:mtJD(2030,4,11),  icon:'🟠', type:'arrival', planet:'jupiter',
+       desc:'Jupiter Orbit Insertion. Begins 49 Europa flybys over 4 years to study the subsurface ocean.',
+       rows:[['Arrival','Apr 2030'],['Europa flybys','49 planned'],['Ocean depth','25 km'],['Habitable?','LIKELY']]},
+    ],
+    waypoints: function() {
+      return [
+        [mtJD(2024,10,14), 0.923,0, 0.384],   // Earth launch
+        [mtJD(2024,12,1),  0.600,0, 1.000],
+        [mtJD(2025,3,1),  -1.005,0, 1.145],   // Mars flyby
+        [mtJD(2025,8,1),  -1.200,0, 0.800],
+        [mtJD(2026,3,1),   0.000,0, 0.200],
+        [mtJD(2026,12,1),  0.352,0, 0.936],   // Earth flyby
+        [mtJD(2027,6,1),   1.500,0, 2.000],
+        [mtJD(2028,6,1),   2.500,0, 3.500],
+        [mtJD(2029,6,1),  -0.500,0, 5.000],
+        [mtJD(2030,4,11), -3.119,0,-4.164],   // Jupiter
+        [mtJD(2031,1,1),  -4.000,0,-5.000],
+      ].map(([jd,x,y,z])=>({jd,pos:new THREE.Vector3(x,y,z)}));
+    },
+    planets_shown:['earth','mars','jupiter','saturn'],
+  },
+];
+
+// ── SCENE STATE ───────────────────────────────────────────────────
+let mtScene, mtCamera, mtRenderer;
+let mtCraft, mtTrailLine, mtTrailPositions=[];
+let mtT=0, mtSpd=1, mtPlaying=false, mtBuilt=false;
+let mtDragging=false, mtLastX=0, mtLastY=0;
+let mtPhi=1.1, mtTheta=0.4, mtRadius=8;
+let mtCamMode='cinematic';
+let mtMission=null; // current mission object
+let mtPlanetMeshes={};
+let mtLastMilestone=-1;
+let mtAnimId=null;
+
+function mtInit() {
+  if (mtBuilt) return;
+  mtBuilt = true;
+
+  const cv = document.getElementById('mt-cv');
+  if (!cv) return;
+
+  const W = cv.parentElement.offsetWidth || 900;
+  const H = Math.max(500, Math.round(W * 0.58));
+  cv.width = W; cv.height = H; cv.style.height = H + 'px';
+
+  mtScene    = new THREE.Scene();
+  mtCamera   = new THREE.PerspectiveCamera(48, W/H, 0.001, 3000);
+  mtRenderer = new THREE.WebGLRenderer({canvas:cv, antialias:true});
+  mtRenderer.setSize(W, H);
+  mtRenderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  mtRenderer.setClearColor(0x010309);
+
+  // Lighting
+  mtScene.add(new THREE.AmbientLight(0x223355, 0.5));
+  const sunL = new THREE.PointLight(0xffeedd, 2, 0);
+  sunL.name = 'mtSunLight'; mtScene.add(sunL);
+
+  // Stars
+  const rng = ((s)=>()=>{s|=0;s+=0x6D2B79F5|0;let t=Math.imul(s^s>>>15,1|s);t^=t+Math.imul(t^t>>>7,61|t);return((t^t>>>14)>>>0)/4294967296;})(55);
+  const sp=new Float32Array(4000*3),sc=new Float32Array(4000*3);
+  for(let i=0;i<4000;i++){
+    const th=rng()*Math.PI*2,ph=Math.acos(2*rng()-1),r=500+rng()*200;
+    sp[i*3]=r*Math.sin(ph)*Math.cos(th);sp[i*3+1]=r*Math.cos(ph);sp[i*3+2]=r*Math.sin(ph)*Math.sin(th);
+    const t=rng();sc[i*3]=t<.1?.85:.98;sc[i*3+1]=t<.1?.9:.98;sc[i*3+2]=t<.1?1:.97;
+  }
+  const sg=new THREE.BufferGeometry();sg.setAttribute('position',new THREE.BufferAttribute(sp,3));sg.setAttribute('color',new THREE.BufferAttribute(sc,3));
+  mtScene.add(new THREE.Points(sg,new THREE.PointsMaterial({size:0.8,vertexColors:true,sizeAttenuation:true})));
+
+  // Sun
+  const sunTex = (()=>{const c=document.createElement('canvas');c.width=128;c.height=64;const x=c.getContext('2d');const g=x.createRadialGradient(64,32,2,64,32,64);g.addColorStop(0,'#FFFDE7');g.addColorStop(.4,'#FFF176');g.addColorStop(.8,'#FF8F00');g.addColorStop(1,'#E65100');x.fillStyle=g;x.fillRect(0,0,128,64);return new THREE.CanvasTexture(c);})();
+  const sunMesh=new THREE.Mesh(new THREE.SphereGeometry(0.08,32,16),new THREE.MeshPhongMaterial({map:sunTex,emissive:0xffaa00,emissiveIntensity:2}));
+  sunMesh.name='sun'; mtScene.add(sunMesh);
+  [[0.12,0.12],[0.20,0.07],[0.30,0.03]].forEach(([r,o])=>mtScene.add(new THREE.Mesh(new THREE.SphereGeometry(r,16,8),new THREE.MeshPhongMaterial({color:0xffcc44,transparent:true,opacity:o,side:THREE.BackSide,depthWrite:false}))));
+
+  // Build planet meshes (hidden until needed)
+  Object.entries(MT_PLANETS).forEach(([id,p]) => {
+    const grp = new THREE.Group(); grp.name = 'mt-planet-'+id; grp.visible = false;
+    const geo = new THREE.SphereGeometry(p.r, 32, 16);
+    const mat = new THREE.MeshPhongMaterial({color:p.c, shininess:8, emissive:new THREE.Color(p.c).multiplyScalar(0.08)});
+    const mesh = new THREE.Mesh(geo, mat); mesh.name='sphere';
+    grp.add(mesh);
+    // Atmosphere glow
+    const atmC = id==='earth'?0x4488ff:id==='venus'?0xcc9933:id==='mars'?0xff6633:p.c;
+    grp.add(new THREE.Mesh(new THREE.SphereGeometry(p.r*1.12,16,8),new THREE.MeshPhongMaterial({color:atmC,transparent:true,opacity:.1,side:THREE.BackSide,depthWrite:false})));
+    // Saturn rings
+    if(p.rings){
+      const rc=document.createElement('canvas');rc.width=128;rc.height=1;
+      const rx=rc.getContext('2d');const rg=rx.createLinearGradient(0,0,128,0);
+      rg.addColorStop(0,'rgba(0,0,0,0)');rg.addColorStop(.1,'rgba(180,160,100,.2)');
+      rg.addColorStop(.3,'rgba(230,210,140,.75)');rg.addColorStop(.5,'rgba(210,190,120,.65)');
+      rg.addColorStop(.7,'rgba(180,160,100,.4)');rg.addColorStop(.9,'rgba(160,140,80,.15)');
+      rg.addColorStop(1,'rgba(0,0,0,0)');rx.fillStyle=rg;rx.fillRect(0,0,128,1);
+      const ringTex=new THREE.CanvasTexture(rc);
+      const rGeo=new THREE.RingGeometry(p.r*1.35,p.r*2.3,80);
+      const pos=rGeo.attributes.position,uv=rGeo.attributes.uv,v=new THREE.Vector3();
+      for(let i=0;i<pos.count;i++){v.fromBufferAttribute(pos,i);uv.setXY(i,(v.length()-p.r*1.35)/(p.r*2.3-p.r*1.35),.5);}
+      const ring=new THREE.Mesh(rGeo,new THREE.MeshBasicMaterial({map:ringTex,side:THREE.DoubleSide,transparent:true,opacity:.85,depthWrite:false}));
+      ring.rotation.x=Math.PI/2+0.47;grp.add(ring);
+    }
+    // Planet label (sprite)
+    const lc=document.createElement('canvas');lc.width=128;lc.height=28;
+    const lx=lc.getContext('2d');lx.font='bold 14px Share Tech Mono,monospace';
+    lx.fillStyle='rgba(255,255,255,0.7)';lx.textAlign='center';lx.fillText(p.name,64,18);
+    const lTex=new THREE.CanvasTexture(lc);
+    const sprite=new THREE.Sprite(new THREE.SpriteMaterial({map:lTex,transparent:true,opacity:.7}));
+    sprite.scale.set(p.r*3.5,p.r*0.8,1);sprite.position.set(0,p.r*1.8,0);sprite.name='label';grp.add(sprite);
+
+    mtScene.add(grp);
+    mtPlanetMeshes[id] = grp;
+  });
+
+  // Spacecraft
+  const craftGeo=new THREE.SphereGeometry(0.025,10,8);
+  const craftMat=new THREE.MeshPhongMaterial({color:0xffffff,emissive:0xffffff,emissiveIntensity:3});
+  mtCraft=new THREE.Mesh(craftGeo,craftMat); mtCraft.name='craft'; mtScene.add(mtCraft);
+  // Craft glow rings
+  for(const [r,o] of [[0.05,0.35],[0.09,0.15],[0.14,0.06]]){
+    const g=new THREE.Mesh(new THREE.SphereGeometry(r,8,6),new THREE.MeshPhongMaterial({color:0xffffff,transparent:true,opacity:o,depthWrite:false}));
+    g.name='craftglow';mtScene.add(g);
+  }
+  // Trail geometry (pre-allocated)
+  const MAX_TRAIL=600;
+  const trailPos=new Float32Array(MAX_TRAIL*3);
+  const trailCol=new Float32Array(MAX_TRAIL*3);
+  const trailGeo=new THREE.BufferGeometry();
+  trailGeo.setAttribute('position',new THREE.BufferAttribute(trailPos,3));
+  trailGeo.setAttribute('color',   new THREE.BufferAttribute(trailCol,3));
+  trailGeo.setDrawRange(0,0);
+  mtTrailLine=new THREE.Line(trailGeo,new THREE.LineBasicMaterial({vertexColors:true,transparent:true,opacity:.85}));
+  mtScene.add(mtTrailLine);
+
+  // Controls
+  cv.addEventListener('mousedown',e=>{mtDragging=true;mtLastX=e.clientX;mtLastY=e.clientY;mtCamMode='orbit';mtUpdateCamBtns();});
+  window.addEventListener('mouseup',()=>mtDragging=false);
+  cv.addEventListener('mousemove',e=>{
+    if(mtDragging){
+      mtTheta-=(e.clientX-mtLastX)*.006;
+      mtPhi=Math.max(.05,Math.min(Math.PI-.05,mtPhi-(e.clientY-mtLastY)*.006));
+      mtLastX=e.clientX;mtLastY=e.clientY;
+    }
+    // Planet hover
+    if(mtMission){
+      const rect=cv.getBoundingClientRect();
+      const mx=((e.clientX-rect.left)/rect.width)*2-1;
+      const my=-((e.clientY-rect.top)/rect.height)*2+1;
+      const ray=new THREE.Raycaster();
+      ray.setFromCamera({x:mx,y:my},mtCamera);
+      const meshes=[];
+      Object.entries(mtPlanetMeshes).forEach(([id,grp])=>{if(grp.visible){const s=grp.children.find(c=>c.name==='sphere');if(s)meshes.push({mesh:s,id});}});
+      const hits=ray.intersectObjects(meshes.map(m=>m.mesh));
+      const info=document.getElementById('mt-info');
+      if(hits.length){
+        const hit=meshes.find(m=>m.mesh===hits[0].object);
+        if(hit){
+          const p=MT_PLANETS[hit.id];
+          document.getElementById('mt-info-title').textContent=p.name;
+          document.getElementById('mt-info-type').textContent=p.name==='Jupiter'?'GAS GIANT':p.name==='Saturn'?'GAS GIANT':['Mars','Venus','Mercury','Earth'].includes(p.name)?'TERRESTRIAL':'ICE GIANT';
+          const pos=mtPlanetPos(hit.id,MT_J2000+mtT*((mtMission.jd_end-mtMission.jd_launch)/1)/(1)); // approx
+          document.getElementById('mt-info-rows').innerHTML='';
+          info.style.display='block';
+        }
+      } else {
+        info.style.display='none';
+      }
+    }
+  });
+  cv.addEventListener('wheel',e=>{mtRadius=Math.max(0.3,Math.min(200,mtRadius*(1+e.deltaY*.001)));e.preventDefault();},{passive:false});
+  let lastT2=null;
+  cv.addEventListener('touchstart',e=>{lastT2=e.touches[0];e.preventDefault();},{passive:false});
+  cv.addEventListener('touchmove',e=>{if(!lastT2)return;const t=e.touches[0];mtTheta-=(t.clientX-lastT2.clientX)*.006;mtPhi=Math.max(.05,Math.min(Math.PI-.05,mtPhi-(t.clientY-lastT2.clientY)*.006));lastT2=t;e.preventDefault();mtCamMode='orbit';},{passive:false});
+
+  // Resize
+  window.addEventListener('resize',()=>{
+    const W2=cv.parentElement.offsetWidth||900,H2=Math.max(500,Math.round(W2*.58));
+    cv.width=W2;cv.height=H2;cv.style.height=H2+'px';
+    mtRenderer.setSize(W2,H2);mtCamera.aspect=W2/H2;mtCamera.updateProjectionMatrix();
+  });
+
+  // Start render loop
+  mtRenderLoop();
+}
+
+function mtInterpolate(waypoints, t) {
+  // t = fraction 0-1 of mission duration
+  if(!waypoints||!waypoints.length) return new THREE.Vector3();
+  const jd = mtMission.jd_launch + t*(mtMission.jd_end - mtMission.jd_launch);
+  // Find surrounding waypoints
+  for(let i=0;i<waypoints.length-1;i++){
+    if(jd>=waypoints[i].jd && jd<=waypoints[i+1].jd){
+      const f=(jd-waypoints[i].jd)/(waypoints[i+1].jd-waypoints[i].jd);
+      // Cubic interpolation using adjacent segments for smoother curves
+      const p0=i>0?waypoints[i-1].pos:waypoints[i].pos;
+      const p1=waypoints[i].pos;
+      const p2=waypoints[i+1].pos;
+      const p3=i<waypoints.length-2?waypoints[i+2].pos:waypoints[i+1].pos;
+      // Catmull-Rom spline
+      const t2=f*f,t3=t2*f;
+      const x=0.5*((2*p1.x)+(-p0.x+p2.x)*f+(2*p0.x-5*p1.x+4*p2.x-p3.x)*t2+(-p0.x+3*p1.x-3*p2.x+p3.x)*t3);
+      const y=0.5*((2*p1.y)+(-p0.y+p2.y)*f+(2*p0.y-5*p1.y+4*p2.y-p3.y)*t2+(-p0.y+3*p1.y-3*p2.y+p3.y)*t3);
+      const z=0.5*((2*p1.z)+(-p0.z+p2.z)*f+(2*p0.z-5*p1.z+4*p2.z-p3.z)*t2+(-p0.z+3*p1.z-3*p2.z+p3.z)*t3);
+      return new THREE.Vector3(x,y,z);
+    }
+  }
+  return waypoints[waypoints.length-1].pos.clone();
+}
+
+function mtRenderLoop() {
+  if(!mtScene)return;
+
+  if(mtPlaying && mtMission) {
+    // Advance timeline
+    const dur = (mtMission.jd_end - mtMission.jd_launch);
+    const step = mtSpd * 0.0003; // fraction per frame
+    mtT = Math.min(1, mtT + step);
+    if(mtT>=1){ mtT=1; mtPlaying=false; document.getElementById('mt-play').textContent='▶ PLAY'; }
+    document.getElementById('mt-timeline').value = Math.round(mtT*1000);
+    document.getElementById('mt-tl-fill').style.width = (mtT*100)+'%';
+  }
+
+  if(mtMission) {
+    const wpts = mtMission._waypoints;
+    if(wpts) {
+      const pos = mtInterpolate(wpts, mtT);
+      mtCraft.position.copy(pos);
+
+      // Update glow position
+      mtScene.children.forEach(c=>{ if(c.name==='craftglow') c.position.copy(pos); });
+
+      // Add to trail
+      mtTrailPositions.push(pos.clone());
+      const MAX_T = 500;
+      if(mtTrailPositions.length > MAX_T) mtTrailPositions.shift();
+
+      // Update trail geometry
+      const tPos = mtTrailLine.geometry.attributes.position.array;
+      const tCol = mtTrailLine.geometry.attributes.color.array;
+      const col = new THREE.Color(mtMission.color);
+      const n = mtTrailPositions.length;
+      mtTrailPositions.forEach((p,i) => {
+        tPos[i*3]=p.x; tPos[i*3+1]=p.y; tPos[i*3+2]=p.z;
+        const f = i/n;
+        tCol[i*3]=col.r*f; tCol[i*3+1]=col.g*f; tCol[i*3+2]=col.b*f;
+      });
+      mtTrailLine.geometry.attributes.position.needsUpdate=true;
+      mtTrailLine.geometry.attributes.color.needsUpdate=true;
+      mtTrailLine.geometry.setDrawRange(0,n);
+
+      // Update planet positions
+      const jd = mtMission.jd_launch + mtT*(mtMission.jd_end-mtMission.jd_launch);
+      mtMission.planets_shown.forEach(pid => {
+        const grp=mtPlanetMeshes[pid];
+        if(!grp)return;
+        grp.visible=true;
+        const p=mtPlanetPos(pid,jd);
+        const scl=1/mtMission.scale;
+        grp.position.set(p.x,p.y,p.z);
+        // Scale planet spheres to be visible at this zoom
+        const pInfo=MT_PLANETS[pid];
+        const vr=pInfo.r*Math.max(0.5,mtMission.scale/10);
+        grp.children.forEach(c=>{
+          if(c.name==='sphere')c.scale.setScalar(vr/pInfo.r);
+          if(c.name==='label'){c.position.set(0,vr*1.8,0);c.scale.set(vr*3.5,vr*0.8,1);}
+        });
+      });
+
+      // Craft scale
+      const craftVr = 0.025*Math.max(0.8,mtMission.scale/15);
+      mtCraft.scale.setScalar(craftVr/0.025);
+      mtScene.children.forEach(c=>{ if(c.name==='craftglow') c.scale.setScalar(craftVr/0.025); });
+
+      // Check milestones
+      const phases=mtMission.phases;
+      let currentPhase=null,currentPhaseIdx=0;
+      for(let i=0;i<phases.length;i++){
+        const pjd=phases[i].jd;
+        const nextJd=i<phases.length-1?phases[i+1].jd:mtMission.jd_end;
+        const frac=(pjd-mtMission.jd_launch)/(mtMission.jd_end-mtMission.jd_launch);
+        const nextFrac=(nextJd-mtMission.jd_launch)/(mtMission.jd_end-mtMission.jd_launch);
+        if(mtT>=frac && mtT<nextFrac){ currentPhase=phases[i]; currentPhaseIdx=i; break; }
+        if(i===phases.length-1&&mtT>=frac){ currentPhase=phases[i]; currentPhaseIdx=i; }
+      }
+      if(currentPhase){
+        document.getElementById('mt-phase').textContent=currentPhase.icon+' '+currentPhase.name;
+        const simDate=new Date((mtMission.jd_launch+(mtT*(mtMission.jd_end-mtMission.jd_launch))-2440587.5)*86400000);
+        document.getElementById('mt-date').textContent=simDate.toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric'}).toUpperCase();
+
+        // Milestone banner trigger
+        if(currentPhaseIdx!==mtLastMilestone && mtPlaying){
+          mtLastMilestone=currentPhaseIdx;
+          const banner=document.getElementById('mt-milestone');
+          banner.textContent=currentPhase.icon+' '+currentPhase.name.toUpperCase();
+          banner.style.color=mtMission.colorHex;
+          banner.style.borderColor=mtMission.colorHex;
+          banner.classList.add('show');
+          banner.style.display='block';
+          setTimeout(()=>{ banner.classList.remove('show'); setTimeout(()=>banner.style.display='none',500); },3000);
+        }
+      }
+
+      // Camera
+      if(mtCamMode==='cinematic'||mtCamMode==='follow') {
+        // Smooth camera follows spacecraft from above-behind
+        const target = pos.clone();
+        const offset = new THREE.Vector3(0,mtRadius*0.4,mtRadius*0.8).applyEuler(new THREE.Euler(0,mtTheta*0.3,0));
+        const camPos = target.clone().add(offset);
+        mtCamera.position.lerp(camPos, 0.02);
+        mtCamera.lookAt(target);
+      } else if(mtCamMode==='orbit') {
+        mtCamera.position.set(mtRadius*Math.sin(mtPhi)*Math.cos(mtTheta),mtRadius*Math.cos(mtPhi),mtRadius*Math.sin(mtPhi)*Math.sin(mtTheta));
+        mtCamera.lookAt(0,0,0);
+      } else if(mtCamMode==='top') {
+        mtCamera.position.set(0,mtRadius,0.001);
+        mtCamera.lookAt(0,0,0);
+      }
+    }
+  } else {
+    // No mission selected — orbit view
+    mtTheta+=0.002;
+    mtCamera.position.set(mtRadius*Math.sin(mtPhi)*Math.cos(mtTheta),mtRadius*Math.cos(mtPhi),mtRadius*Math.sin(mtPhi)*Math.sin(mtTheta));
+    mtCamera.lookAt(0,0,0);
+  }
+
+  // Rotate sun + planet self-rotation
+  const sunMesh=mtScene.getObjectByName('sun');
+  if(sunMesh)sunMesh.rotation.y+=0.003;
+  Object.values(mtPlanetMeshes).forEach(grp=>{
+    const s=grp.children.find(c=>c.name==='sphere');
+    if(s)s.rotation.y+=0.008;
+  });
+
+  mtRenderer.render(mtScene,mtCamera);
+  mtAnimId=requestAnimationFrame(mtRenderLoop);
+}
+
+function mtSelectMission(id) {
+  mtMission=MT_MISSIONS.find(m=>m.id===id);
+  if(!mtMission)return;
+
+  // Precompute waypoints
+  mtMission._waypoints=mtMission.waypoints();
+
+  // Reset state
+  mtT=0;mtPlaying=false;mtLastMilestone=-1;
+  mtTrailPositions=[];
+  mtTrailLine.geometry.setDrawRange(0,0);
+  document.getElementById('mt-play').textContent='▶ PLAY';
+  document.getElementById('mt-timeline').value=0;
+  document.getElementById('mt-tl-fill').style.width='0%';
+
+  // Hide all planets, show only what this mission uses
+  Object.keys(mtPlanetMeshes).forEach(pid=>{mtPlanetMeshes[pid].visible=false;});
+
+  // Set mission color CSS var
+  document.getElementById('mt-s').style.setProperty('--mt-col', mtMission.colorHex);
+
+  // Update card active state
+  document.querySelectorAll('.mt-card').forEach(c=>{
+    c.style.setProperty('--mt-col',mtMission.colorHex);
+    c.classList.toggle('active',c.dataset.id===id);
+  });
+
+  // Update title
+  document.getElementById('mt-title').textContent=mtMission.name.toUpperCase();
+  document.getElementById('mt-phase').textContent='▶ PRESS PLAY';
+  document.getElementById('mt-date').textContent=new Date((mtMission.jd_launch-2440587.5)*86400000).toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric'}).toUpperCase();
+
+  // Build timeline phase markers
+  const markContainer=document.getElementById('mt-phase-marks');
+  markContainer.innerHTML='';
+  mtMission.phases.forEach(ph=>{
+    const frac=(ph.jd-mtMission.jd_launch)/(mtMission.jd_end-mtMission.jd_launch);
+    const mark=document.createElement('div');
+    mark.className='mt-phase-mark';
+    mark.style.left=(frac*100)+'%';
+    const lbl=document.createElement('div');
+    lbl.className='mt-phase-label';
+    lbl.style.left=(frac*100)+'%';
+    lbl.textContent=ph.icon+' '+ph.name;
+    markContainer.appendChild(mark);
+    markContainer.appendChild(lbl);
+  });
+
+  // Set initial craft position
+  const startPos=mtMission._waypoints[0].pos;
+  mtCraft.position.copy(startPos);
+
+  // Camera zoom based on mission scale
+  mtRadius=mtMission.scale*0.7;
+  mtPhi=0.9;mtTheta=0.5;
+
+  // Auto-play
+  setTimeout(()=>{ mtPlaying=true; document.getElementById('mt-play').textContent='⏸ PAUSE'; },600);
+}
+
+function mtUpdateCamBtns() {
+  document.querySelectorAll('.mt-cam-btn').forEach(b=>b.classList.toggle('active',b.dataset.cam===mtCamMode));
+}
+
+// ── BUILD MISSION CARDS ────────────────────────────────────────────
+(function buildCards(){
+  const container=document.getElementById('mt-cards');
+  MT_MISSIONS.forEach(m=>{
+    const card=document.createElement('div');
+    card.className='mt-card'; card.dataset.id=m.id;
+    card.style.setProperty('--mt-col',m.colorHex);
+    card.innerHTML=`<div class="mt-card-agency">${m.agency} · ${m.year}</div>
+      <div class="mt-card-name">${m.name}</div>
+      <div class="mt-card-tag">${m.tagline}</div>`;
+    card.addEventListener('click',()=>{ if(mtBuilt) mtSelectMission(m.id); });
+    container.appendChild(card);
+  });
+})();
+
+// ── WIRE CONTROLS ─────────────────────────────────────────────────
+document.getElementById('mt-play')?.addEventListener('click',()=>{
+  if(!mtMission)return;
+  mtPlaying=!mtPlaying;
+  document.getElementById('mt-play').textContent=mtPlaying?'⏸ PAUSE':'▶ PLAY';
+});
+document.getElementById('mt-slower')?.addEventListener('click',()=>{ mtSpd=Math.max(.1,mtSpd*.5); document.getElementById('mt-spd').textContent=(mtSpd<1?mtSpd.toFixed(1):Math.round(mtSpd))+'×'; });
+document.getElementById('mt-faster')?.addEventListener('click',()=>{ mtSpd=Math.min(50,mtSpd*2); document.getElementById('mt-spd').textContent=(mtSpd<1?mtSpd.toFixed(1):Math.round(mtSpd))+'×'; });
+document.getElementById('mt-reset')?.addEventListener('click',()=>{
+  if(!mtMission)return;
+  mtT=0;mtPlaying=false;mtTrailPositions=[];mtTrailLine.geometry.setDrawRange(0,0);mtLastMilestone=-1;
+  document.getElementById('mt-play').textContent='▶ PLAY';
+  document.getElementById('mt-timeline').value=0;
+  document.getElementById('mt-tl-fill').style.width='0%';
+});
+document.getElementById('mt-timeline')?.addEventListener('input',e=>{
+  mtT=+e.target.value/1000;
+  document.getElementById('mt-tl-fill').style.width=(mtT*100)+'%';
+  if(mtMission){
+    mtTrailPositions=[]; // clear trail on scrub
+    mtTrailLine.geometry.setDrawRange(0,0);
+    mtLastMilestone=-1;
+  }
+});
+document.querySelectorAll('.mt-cam-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{ mtCamMode=btn.dataset.cam; mtUpdateCamBtns(); });
+});
+
+// ── INIT ON SCROLL INTO VIEW ──────────────────────────────────────
+(function(){
+  const el=document.getElementById('mt-s');if(!el)return;
+  new IntersectionObserver(entries=>{
+    if(entries[0].isIntersecting&&!mtBuilt){
+      mtInit();
+      // Auto-load Voyager 1 after a short delay
+      setTimeout(()=>mtSelectMission('voyager1'),400);
+    }
+  },{threshold:.05}).observe(el);
+})();
+</script>
+
+
 <div class="wrap" id="sw-s" style="border-top:1px solid var(--bd)">
   <div class="sh">
     <span class="st">// SOLAR ACTIVITY</span>
@@ -3159,7 +4008,7 @@ window.addEventListener('resize', () => {
    Set this to your Cloudflare Worker URL after deploying.
    See voidsignal-worker.js for deploy instructions (5 min).
    With worker set, ALL live data works — no CORS errors.         */
-const WORKER_URL = 'https://withered-bar-4b79.rugu5566.workers.dev';  // Cloudflare Worker proxy
+const WORKER_URL = 'https://withered-bar-4b79.rugu5566.workers.dev/';  // e.g. 'https://voidsignal-proxy.yourname.workers.dev'
 // Helper: routes a path through the worker if configured, otherwise falls back
 function proxyUrl(path) {
   return WORKER_URL ? WORKER_URL + path : null;
@@ -4746,50 +5595,80 @@ async function aiQuery(prompt) {
 
   aiHistory.push({ role: 'user', content: prompt });
 
-  // Show thinking dots
+  // Thinking indicator
   const out = document.getElementById('to');
   const thinkEl = document.createElement('div');
   thinkEl.className = 'tl'; thinkEl.id = 'ai-thinking';
   thinkEl.innerHTML = '<span style="color:var(--c)">VOID-AI</span> <span style="color:var(--dim)">computing</span><span id="ai-dots" style="color:var(--g)">...</span>';
   out.appendChild(thinkEl); out.scrollTop = out.scrollHeight;
 
-  // Animate dots
   let dotCount = 0;
   const dotTimer = setInterval(() => {
     const d = document.getElementById('ai-dots');
     if (d) d.textContent = '.'.repeat((++dotCount % 4) || 1);
   }, 400);
 
+  // Choose endpoint: worker /ai (best) → direct Anthropic (fallback)
+  const useWorker  = !!WORKER_URL;
+  const endpoint   = useWorker
+    ? WORKER_URL + '/ai'
+    : 'https://api.anthropic.com/v1/messages';
+  const headers    = useWorker
+    ? { 'Content-Type': 'application/json' }
+    : { 'Content-Type': 'application/json' };  // worker holds the API key
+
+  // Build payload
+  const payload = useWorker
+    ? { system: AI_SYSTEM, messages: aiHistory, max_tokens: 1000 }
+    : { model: 'claude-sonnet-4-5', max_tokens: 1000, system: AI_SYSTEM, messages: aiHistory };
+
   try {
-    const res = await fetch(WORKER_URL + '/ai', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        system: AI_SYSTEM,
-        messages: aiHistory
-      })
+    const res = await fetch(endpoint, {
+      method:  'POST',
+      headers,
+      body:    JSON.stringify(payload),
+      signal:  AbortSignal.timeout(30000),
     });
 
     clearInterval(dotTimer);
     document.getElementById('ai-thinking')?.remove();
 
-    if (!res.ok) {
-      const err = await res.json().catch(()=>({}));
-      throw new Error(err.error?.message || `HTTP ${res.status}`);
+    const data = await res.json().catch(() => ({}));
+
+    // Rate limit or quota hit
+    if (res.status === 429 || data.rateLimit) {
+      termBlank();
+      termLine('<span style="color:var(--a)">// ⬡ ─────────────────────────────────────────────</span>');
+      termLine('<span style="color:var(--a)">// VOID-AI DAILY LIMIT REACHED</span>');
+      termLine('<span style="color:rgba(255,255,255,.8)">// This terminal runs on community compute.</span>');
+      termLine('<span style="color:rgba(255,255,255,.8)">// Holders get priority access.</span>');
+      termBlank();
+      termLine('<span style="color:var(--g);font-size:.8rem">// ▶  BUY $VOID TO UNLOCK FULL ACCESS</span>');
+      termLine('<span style="color:var(--dim)">// bags.fm → search $VOID</span>');
+      termLine('<span style="color:var(--a)">// ⬡ ─────────────────────────────────────────────</span>');
+      termBlank();
+      status.textContent = '⬡ $VOID REQUIRED'; status.style.color = 'var(--a)';
+      aiHistory.pop(); // remove unanswered user message
+      aiTyping = false;
+      return;
     }
 
-    const data  = await res.json();
-    // Worker normalises Gemini response → {reply: "text"}
-    const reply = data.reply || data.content?.[0]?.text || 'Signal lost. Try again.';
+    if (!res.ok) {
+      const msg = data.error?.message || data.error || `HTTP ${res.status}`;
+      throw new Error(msg);
+    }
+
+    // Extract reply — worker returns {reply}, direct API returns {content[]}
+    const reply = data.reply || data.content?.[0]?.text || 'Signal lost.';
     aiHistory.push({ role: 'assistant', content: reply });
 
     termBlank();
     termLine('<span style="color:var(--c)">VOID-AI ──────────────────────────────────────────</span>');
     reply.split('\n').filter(l => l.trim()).forEach(line => {
       const safeL = line.replace(/</g,'&lt;').replace(/>/g,'&gt;');
-      termLine(`<span style="color:rgba(255,255,255,.85)">${safeL}</span>`);
+      termLine(`<span style="color:rgba(255,255,255,.88)">${safeL}</span>`);
     });
-    termLine('<span style="color:rgba(0,255,159,.25)">──────────────────────────────────────────────────</span>');
+    termLine('<span style="color:rgba(0,255,159,.2)">──────────────────────────────────────────────────</span>');
     termBlank();
 
     status.textContent = '⬡ ONLINE'; status.style.color = 'var(--g)';
@@ -4797,8 +5676,17 @@ async function aiQuery(prompt) {
   } catch(e) {
     clearInterval(dotTimer);
     document.getElementById('ai-thinking')?.remove();
-    termLine(`<span style="color:var(--r)">// UPLINK ERROR: ${e.message}</span>`);
-    termLine('<span style="color:var(--dim)">// Check GEMINI_KEY is set in Worker environment variables.</span>');
+
+    // Check if it's a network/CORS error (direct API without key)
+    const isCors = e.message.includes('Failed to fetch') || e.message.includes('NetworkError');
+    if (isCors && !useWorker) {
+      termLine('<span style="color:var(--r)">// DIRECT API BLOCKED (CORS)</span>');
+      termLine('<span style="color:var(--dim)">// Deploy the Cloudflare Worker and set WORKER_URL for full AI access.</span>');
+      termLine('<span style="color:var(--g)">// See voidsignal-worker-v4.js for instructions.</span>');
+    } else {
+      termLine(`<span style="color:var(--r)">// UPLINK ERROR: ${e.message.substring(0,80)}</span>`);
+      termLine('<span style="color:var(--dim)">// Retry in a moment. If persistent, check worker logs.</span>');
+    }
     status.textContent = '⬡ ERROR'; status.style.color = 'var(--r)';
   }
 
@@ -4816,9 +5704,9 @@ async function aiQuery(prompt) {
     ['var(--dim)','Satellite TLE processor........... READY'],
     ['var(--dim)','Deep space knowledge core......... ONLINE'],
     ['var(--dim)','Launch vehicle database........... LOADED'],
-    ['var(--dim)','Claude AI uplink.................. CONNECTED'],
-    ['var(--g)',  '⬡ VOID-AI ONLINE — ask anything about space'],
-    ['var(--a)',  '  try: "how does reentry plasma work?" · "compare launch vehicles" · "what is $VOID?"'],
+    ['var(--dim)','Claude claude-sonnet-4-5 uplink............ CONNECTED'],
+    ['var(--g)',  '⬡ VOID-AI (Claude claude-sonnet-4-5) — ask anything about space'],
+    ['var(--a)',  '  try: "how does reentry plasma work?" · "explain gravity assists" · "buy $VOID"'],
     ['rgba(0,255,159,.3)', '──────────────────────────────────────────────────'],
   ];
   let i = 0;
@@ -4971,10 +5859,10 @@ buildSatGrids();
   if (WORKER_URL) {
     fetch(WORKER_URL + '/health', {signal: AbortSignal.timeout(3000)})
       .then(r => r.json())
-      .then(d => { el.textContent = '⬡ PROXY WORKER ONLINE · ALL LIVE DATA ACTIVE'; el.style.color = 'var(--g)'; el.style.opacity = '0.6'; })
+      .then(d => { el.textContent = '⬡ CLAUDE AI + LIVE DATA · WORKER ONLINE'; el.style.color = 'var(--g)'; el.style.opacity = '0.6'; })
       .catch(()=> { el.textContent = '⬡ WORKER UNREACHABLE · USING FALLBACK APIS'; el.style.color = 'var(--a)'; el.style.opacity = '0.5'; });
   } else {
-    el.textContent = '⬡ FALLBACK MODE · SET WORKER_URL FOR GUARANTEED LIVE DATA';
+    el.textContent = '⬡ SET WORKER_URL FOR CLAUDE AI + LIVE DATA (see voidsignal-worker-v4.js)';
     el.style.opacity = '0.35';
   }
 })();
