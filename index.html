@@ -4008,7 +4008,7 @@ window.addEventListener('resize', () => {
    Set this to your Cloudflare Worker URL after deploying.
    See voidsignal-worker.js for deploy instructions (5 min).
    With worker set, ALL live data works — no CORS errors.         */
-const WORKER_URL = 'https://withered-bar-4b79.rugu5566.workers.dev/';  // e.g. 'https://voidsignal-proxy.yourname.workers.dev'
+const WORKER_URL = 'https://withered-bar-4b79.rugu5566.workers.dev';  // e.g. 'https://voidsignal-proxy.yourname.workers.dev'
 // Helper: routes a path through the worker if configured, otherwise falls back
 function proxyUrl(path) {
   return WORKER_URL ? WORKER_URL.replace(/\/+$/, '') + path : null;
